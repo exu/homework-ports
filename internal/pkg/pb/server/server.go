@@ -27,10 +27,30 @@ type PortsServiceServer struct {
 	pb.UnimplementedPortsServiceServer
 }
 
-func (s PortsServiceServer) Insert(context.Context, *pb.Port) (*pb.Port, error) { return nil, nil }
-func (s PortsServiceServer) Get(context.Context, *pb.Code) (*pb.Port, error)    { return nil, nil }
-func (s PortsServiceServer) List(context.Context, *pb.Codes) (*pb.Ports, error) { return nil, nil }
-func (s PortsServiceServer) Delete(context.Context, *pb.Code) (*pb.Port, error) { return nil, nil }
+func (s PortsServiceServer) Insert(ctx context.Context, port *pb.Port) (*pb.Port, error) {
+	err := s.Repo.Save(port)
+	return port, err
+}
+func (s PortsServiceServer) Get(ctx context.Context, code *pb.Code) (*pb.Port, error) {
+	port, exists := s.Repo.Get(code.Code)
+	if !exists {
+		return port, fmt.Errorf("Can't find port with code:%s", code.Code)
+	}
+
+	return port, nil
+}
+func (s PortsServiceServer) List(ctx context.Context, codes *pb.Codes) (ports *pb.Ports, err error) {
+	dbPorts, err := s.Repo.List(codes.Code...)
+	if err != nil {
+		return nil, err
+	}
+	ports.Ports = dbPorts
+	return
+}
+func (s PortsServiceServer) Delete(ctx context.Context, code *pb.Code) (port *pb.Port, err error) {
+	err = s.Repo.Delete(code.Code)
+	return port, err
+}
 
 func Start() {
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", "9091"))
