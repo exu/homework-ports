@@ -52,13 +52,17 @@ func (s PortsServiceServer) Delete(ctx context.Context, code *pb.Code) (port *pb
 	return port, err
 }
 
-func Start() {
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", "9091"))
+func Start(server *PortsServiceServer) {
+	// TODO extract to config
+	address := fmt.Sprintf("localhost:%s", "9091")
+	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+	// TODO handle graceful shutdown
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterPortsServiceServer(grpcServer, NewPortsServiceServer())
+	pb.RegisterPortsServiceServer(grpcServer, server)
+	log.Printf("Starting GRPC ports server at %s", address)
 	grpcServer.Serve(lis)
 }

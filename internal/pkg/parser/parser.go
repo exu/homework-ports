@@ -9,7 +9,7 @@ import (
 	"ports/internal/pkg/pb"
 )
 
-type Callback func(port pb.Port) error
+type Callback func(port *pb.Port) error
 
 func ProcessPortsJSON(input io.Reader, callback Callback) error {
 	dec := json.NewDecoder(input)
@@ -33,7 +33,9 @@ func ProcessPortsJSON(input io.Reader, callback Callback) error {
 			return fmt.Errorf("decoding error: %w", err)
 		}
 
-		err = callback(port)
+		fmt.Printf("PORT: %+v\n", &port)
+
+		err = callback(&port)
 		if err != nil {
 			return fmt.Errorf("calling callback: %w", err)
 		}

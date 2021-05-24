@@ -1,12 +1,14 @@
 package data
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"ports/internal/pkg/parser"
 	"ports/internal/pkg/pb"
+	"ports/internal/pkg/pb/client"
 	"runtime"
 	"syscall"
 
@@ -14,12 +16,19 @@ import (
 )
 
 func NewDataApp(portsFile string) DataApp {
+
+	// TODO no time for handle it better :)
+	client := client.PortsServiceClient{}
+	client.Connect()
+
 	return DataApp{
 		Mux: fiber.New(fiber.Config{
 			DisableStartupMessage: true,
 		}),
 		PortsFile: portsFile,
 		Address:   ":9090",
+		Client:    client,
+		Ctx:       context.Background(),
 	}
 
 }
@@ -28,6 +37,8 @@ type DataApp struct {
 	Mux       *fiber.App
 	Address   string
 	PortsFile string
+	Client    client.PortsServiceClient
+	Ctx       context.Context
 }
 
 // Start starts app
@@ -67,11 +78,15 @@ func (app DataApp) SavePortHandler() fiber.Handler {
 
 			return app.Err(c, err)
 		}
-		err = parser.ProcessPortsJSON(input, func(port pb.Port) error {
-			fmt.Printf("%+v\n", port)
-			return nil
+		err = parser.ProcessPortsJSON(input, func(port *pb.Port) error {
+			log.Printf("Processing port with code: %+v", port)
+			_, err := app.Client.Client.Insert(context.Background(), port)
+			return err
 		})
-		fmt.Printf("%+v\n", err)
+
+		if err != nil {
+			log.Println("Got error during processing JSON file", err)
+		}
 
 		PrintMemUsage()
 

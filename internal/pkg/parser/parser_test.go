@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"ports/internal/pkg/model"
+	"ports/internal/pkg/pb"
 	"ports/internal/pkg/test/assert"
 	"strings"
 	"testing"
@@ -53,15 +53,14 @@ func TestProcessPortsJSON(t *testing.T) {
 
 		input := strings.NewReader(jsonStream)
 
-		ports := []model.Port{}
-		ProcessPortsJSON(input, func(port model.Port) error {
+		ports := []*pb.Port{}
+		ProcessPortsJSON(input, func(port *pb.Port) error {
 			ports = append(ports, port)
 			return nil
 		})
 
 		assert.Equals(t, "Ajman", ports[0].Name)
 		assert.Equals(t, "Abu Dhabi", ports[1].Name)
-
 	})
 
 }
