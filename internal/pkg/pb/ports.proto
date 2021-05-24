@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package ports;
+
+option go_package = "ports/internal/pkg/pb";
+
+message Port {
+    string name = 1;
+    string city = 2;
+    string country = 3;
+    repeated string alias = 4;
+    repeated string regions = 5;
+    repeated float coordinates = 6;
+    string province = 7;
+    string timezone = 8;
+    repeated string unlocs = 9;
+    string code = 10;
+}
+
+message Ports{
+    repeated Port ports = 1;
+}
+
+message Code {
+    string code = 1;
+}
+
+message Codes {
+    repeated string code = 1;
+}
+
+service PortsService {
+    rpc Insert(Port) returns (Port);
+    rpc Get(Code) returns (Port);
+    rpc List(Codes) returns (Ports);
+    rpc Delete(Code) returns (Port);
+}
